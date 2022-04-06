@@ -8,7 +8,7 @@ Crane-scheduler is a collection of scheduler plugins based on [scheduler framewo
 ### 1. Install Prometheus
 Make sure your kubernetes cluster has Prometheus installed. If not, please refer to [Install Prometheus](https://github.com/gocrane/fadvisor/blob/main/README.md#prerequests).
 ### 2. Configure Prometheus Rules
-1) Configure the rules of Prometheus to get expected aggregate data:
+1) Configure the rules of Prometheus to get expected aggregated data:
 ```yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
