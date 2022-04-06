@@ -1,0 +1,102 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: annotator
+  name: {{ .Values.annotator.name }}
+  namespace: {{ .Values.annotator.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: annotator
+  template:
+    metadata:
+      labels:
+        app: annotator
+    spec:
+      serviceAccountName: annotator
+      containers:
+        - name: {{ .Values.annotator.name }}
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          command:
+            - /annotator
+            - --policy-config-path=/data/policy.yaml
+            - --prometheus-addr={{ .Values.global.prometheusAddr }}
+          image:  {{ .Values.annotator.image }}
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /data
+              name: dynamic-scheduler-policy
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: dynamic-scheduler-policy
+          name: dynamic-scheduler-policy
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    component: scheduler
+  name: {{ .Values.scheduler.name }}
+  namespace: {{ .Values.scheduler.namespace }}
+spec:
+  selector:
+    matchLabels:
+      component: scheduler
+  replicas: {{ .Values.scheduler.replicaCount }}
+  template:
+    metadata:
+      labels:
+        component: scheduler
+    spec:
+      serviceAccountName: scheduler
+      containers:
+      - command:
+        - /scheduler
+        - --address=0.0.0.0
+        - --leader-elect=false
+        - --config=/etc/kubernetes/kube-scheduler/scheduler-config.yaml
+        image: {{ .Values.scheduler.image }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 10251
+          initialDelaySeconds: 15
+        name: {{ .Values.scheduler.name }}
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 10251
+        resources:
+          requests:
+            cpu: '0.2'
+        securityContext:
+          privileged: false
+        volumeMounts:
+        - name: scheduler-config
+          mountPath: /etc/kubernetes/kube-scheduler
+          readOnly: true
+        - name: dynamic-scheduler-policy
+          mountPath: /etc/kubernetes
+          readOnly: true
+      hostNetwork: false
+      hostPID: false
+      volumes:
+      - name: scheduler-config
+        configMap:
+          name: scheduler-config
+      - name: dynamic-scheduler-policy
+        configMap:
+          name: dynamic-scheduler-policy

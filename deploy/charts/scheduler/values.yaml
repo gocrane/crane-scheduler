@@ -1,0 +1,18 @@
+# Default values for scheduler.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+scheduler:
+  name: crane-scheduler
+  image: csighub.tencentyun.com/hna/scheduler:fa85e68
+  namespace: crane-system
+  replicaCount: 1
+
+annotator:
+  name: node-annotator
+  image: csighub.tencentyun.com/hna/annotator:fa85e68
+  namespace: crane-system
+  replicaCount: 1
+
+global:
+  prometheusAddr:  http://kvass-thanos.kube-system.svc:9090
