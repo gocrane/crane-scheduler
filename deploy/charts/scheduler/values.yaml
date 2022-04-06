@@ -4,13 +4,13 @@
 
 scheduler:
   name: crane-scheduler
-  image: csighub.tencentyun.com/hna/scheduler:fa85e68
+  image: docker.io/gocrane/scheduler:fa85e68
   namespace: crane-system
   replicaCount: 1
 
 annotator:
   name: node-annotator
-  image: csighub.tencentyun.com/hna/annotator:fa85e68
+  image: docker.io/gocrane/annotator:1bcc819
   namespace: crane-system
   replicaCount: 1
 

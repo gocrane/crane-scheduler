@@ -26,7 +26,7 @@ spec:
             - /annotator
             - --policy-config-path=/data/policy.yaml
             - --prometheus-addr=PROMETHEUS_ADDRESS
-          image: csighub.tencentyun.com/library/stke-dynamic-scheduler-node-annotator:v3.2
+          image: docker.io/gocrane/annotator:ad47ee5
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: /data
