@@ -41,7 +41,7 @@ func NewOptions() (*Options, error) {
 	}
 
 	o.LeaderElection.ResourceName = "annotator"
-	o.LeaderElection.ResourceNamespace = "kube-system"
+	o.LeaderElection.ResourceNamespace = "crane-system"
 
 	return o, nil
 }

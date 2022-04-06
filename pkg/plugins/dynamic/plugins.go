@@ -89,7 +89,7 @@ func (ds *DynamicScheduler) Score(ctx context.Context, state *framework.CycleSta
 
 	finalScore := score - int(hotValue*10)
 
-	klog.Infof("[crane] Node[%s]'s finalscore is %d, while score is %d and hotvalue is %d", node.Name, finalScore, score, hotValue)
+	klog.Infof("[crane] Node[%s]'s finalscore is %d, while score is %d and hotvalue is %f", node.Name, finalScore, score, hotValue)
 
 	return int64(finalScore), nil
 }
