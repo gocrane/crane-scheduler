@@ -148,21 +148,6 @@ rm -rf $$TMP_DIR ;\
 }
 endef
 
-controller-gen:
-ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.7.0 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
-CONTROLLER_GEN=$(shell go env GOPATH)/bin/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
-
 golangci-lint:
 ifeq (, $(shell which golangci-lint))
 	@{ \
@@ -193,21 +178,4 @@ ifeq (, $(shell which goimports))
 GO_IMPORTS=$(shell go env GOPATH)/bin/goimports
 else
 GO_IMPORTS=$(shell which goimports)
-endif
-
-mockgen:
-ifeq (, $(shell which mockgen))
-	@{ \
-	set -e ;\
-	export GO111MODULE=on; \
-	GO_MOCKGEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$GO_MOCKGEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get github.com/golang/mock/mockgen@v1.5.0 ;\
-	go install github.com/golang/mock/mockgen ;\
-	rm -rf $$GO_MOCKGEN_TMP_DIR ;\
-	}
-GO_MOCKGEN=$(shell go env GOPATH)/bin/mockgen
-else
-GO_MOCKGEN=$(shell which mockgen)
 endif
