@@ -2,60 +2,57 @@ package options
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/gocrane/crane-scheduler/pkg/annotator/prometheus"
 	"github.com/spf13/pflag"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	componentbaseconfig "k8s.io/component-base/config"
 	options "k8s.io/component-base/config/options"
 
-	annotatorappconfig "github.com/gocrane/crane-scheduler/cmd/annotator/app/config"
-	annotatorconfig "github.com/gocrane/crane-scheduler/pkg/annotator/apis/config"
-	annotatorconfigscheme "github.com/gocrane/crane-scheduler/pkg/annotator/apis/config/scheme"
-	annotatorconfigv1alpha1 "github.com/gocrane/crane-scheduler/pkg/annotator/apis/config/v1alpha1"
+	controllerappconfig "github.com/gocrane/crane-scheduler/cmd/controller/app/config"
+	annotatorconfig "github.com/gocrane/crane-scheduler/pkg/controller/annotator/config"
 
+	"github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
 	dynamicscheduler "github.com/gocrane/crane-scheduler/pkg/plugins/dynamic"
 )
 
 const (
-	AnnotatorControllerUserAgent = "annotator"
+	ControllerUserAgent = "crane-scheduler-controller"
 )
 
 // Options has all the params needed to run a Annotator.
 type Options struct {
 	*annotatorconfig.AnnotatorConfiguration
 
-	master string
+	LeaderElection *componentbaseconfig.LeaderElectionConfiguration
+
+	master     string
+	kubeconfig string
 }
 
 // NewOptions returns default annotator app options.
 func NewOptions() (*Options, error) {
-	componentConfig, err := newDefaultComponentConfig()
-	if err != nil {
-		return nil, err
-	}
-
 	o := &Options{
-		AnnotatorConfiguration: componentConfig,
+		AnnotatorConfiguration: &annotatorconfig.AnnotatorConfiguration{
+			BindingHeapSize:  1024,
+			ConcurrentSyncs:  1,
+			PolicyConfigPath: "/etc/kubernetes/policy.yaml",
+		},
+		LeaderElection: &componentbaseconfig.LeaderElectionConfiguration{
+			LeaderElect:       true,
+			LeaseDuration:     metav1.Duration{Duration: 15 * time.Second},
+			RenewDeadline:     metav1.Duration{Duration: 10 * time.Second},
+			RetryPeriod:       metav1.Duration{Duration: 2 * time.Second},
+			ResourceLock:      "leases",
+			ResourceName:      "crane-scheduler-controller",
+			ResourceNamespace: "crane-system",
+		},
 	}
-
-	o.LeaderElection.ResourceName = "annotator"
-	o.LeaderElection.ResourceNamespace = "crane-system"
 
 	return o, nil
-}
-
-func newDefaultComponentConfig() (*annotatorconfig.AnnotatorConfiguration, error) {
-	versioned := &annotatorconfigv1alpha1.AnnotatorConfiguration{}
-	annotatorconfigscheme.Scheme.Default(versioned)
-
-	internal := &annotatorconfig.AnnotatorConfiguration{}
-	if err := annotatorconfigscheme.Scheme.Convert(versioned, internal, nil); err != nil {
-		return nil, err
-	}
-
-	return internal, nil
 }
 
 // Flags returns flags for a specific Annotator by section name.
@@ -68,16 +65,17 @@ func (o *Options) Flags(flag *pflag.FlagSet) error {
 	flag.StringVar(&o.PrometheusAddr, "prometheus-addr", o.PrometheusAddr, "The address of prometheus, from which we can pull metrics data.")
 	flag.Int32Var(&o.BindingHeapSize, "binding-heap-size", o.BindingHeapSize, "Max size of binding heap size, used to store hot value data.")
 	flag.Int32Var(&o.ConcurrentSyncs, "concurrent-syncs", o.ConcurrentSyncs, "The number of annotator controller workers that are allowed to sync concurrently.")
-	flag.StringVar(&o.ClientConnection.Kubeconfig, "kubeconfig", o.ClientConnection.Kubeconfig, "Path to kubeconfig file with authorization information")
+	flag.StringVar(&o.kubeconfig, "kubeconfig", o.kubeconfig, "Path to kubeconfig file with authorization information")
 	flag.StringVar(&o.master, "master", o.master, "The address of the Kubernetes API server (overrides any value in kubeconfig)")
 
-	options.BindLeaderElectionFlags(&o.LeaderElection, flag)
+	options.BindLeaderElectionFlags(o.LeaderElection, flag)
 	return nil
 }
 
 // ApplyTo fills up Annotator config with options.
-func (o *Options) ApplyTo(c *annotatorappconfig.Config) error {
-	c.ComponentConfig = *o.AnnotatorConfiguration
+func (o *Options) ApplyTo(c *controllerappconfig.Config) error {
+	c.AnnotatorConfig = o.AnnotatorConfiguration
+	c.LeaderElection = o.LeaderElection
 	return nil
 }
 
@@ -87,7 +85,7 @@ func (o *Options) Validate() error {
 }
 
 // Config returns an Annotator config object.
-func (o *Options) Config() (*annotatorappconfig.Config, error) {
+func (o *Options) Config() (*controllerappconfig.Config, error) {
 	var kubeconfig *rest.Config
 	var err error
 
@@ -95,7 +93,7 @@ func (o *Options) Config() (*annotatorappconfig.Config, error) {
 		return nil, err
 	}
 
-	c := &annotatorappconfig.Config{}
+	c := &controllerappconfig.Config{}
 	if err := o.ApplyTo(c); err != nil {
 		return nil, err
 	}
@@ -105,17 +103,17 @@ func (o *Options) Config() (*annotatorappconfig.Config, error) {
 		return nil, err
 	}
 
-	if o.ClientConnection.Kubeconfig == "" {
+	if o.kubeconfig == "" {
 		kubeconfig, err = rest.InClusterConfig()
 	} else {
 		// Build config from configfile
-		kubeconfig, err = clientcmd.BuildConfigFromFlags(o.master, o.ClientConnection.Kubeconfig)
+		kubeconfig, err = clientcmd.BuildConfigFromFlags(o.master, o.kubeconfig)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	c.KubeClient, err = clientset.NewForConfig(rest.AddUserAgent(kubeconfig, AnnotatorControllerUserAgent))
+	c.KubeClient, err = clientset.NewForConfig(rest.AddUserAgent(kubeconfig, ControllerUserAgent))
 	if err != nil {
 		return nil, err
 	}

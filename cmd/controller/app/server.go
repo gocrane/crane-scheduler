@@ -13,21 +13,21 @@ import (
 	"k8s.io/component-base/version"
 	"k8s.io/klog/v2"
 
-	"github.com/gocrane/crane-scheduler/cmd/annotator/app/config"
-	"github.com/gocrane/crane-scheduler/cmd/annotator/app/options"
-	"github.com/gocrane/crane-scheduler/pkg/annotator/controller"
+	"github.com/gocrane/crane-scheduler/cmd/controller/app/config"
+	"github.com/gocrane/crane-scheduler/cmd/controller/app/options"
+	"github.com/gocrane/crane-scheduler/pkg/controller/annotator"
 )
 
-// NewAnnotatorCommand creates a *cobra.Command object with default parameters
-func NewAnnotatorCommand() *cobra.Command {
+// NewControllerCommand creates a *cobra.Command object with default parameters
+func NewControllerCommand() *cobra.Command {
 	o, err := options.NewOptions()
 	if err != nil {
 		klog.Fatalf("unable to initialize command options: %v", err)
 	}
 
 	cmd := &cobra.Command{
-		Use: "node-annotator",
-		Long: `The Node Annotator is a kubernetes controller, which is used for annotating
+		Use: "crane-scheduler-controller",
+		Long: `The Crane Scheduler Controller is a kubernetes controller, which is used for annotating
 		nodes with real load imformation sourced from Prometheus defaultly. `,
 		Run: func(cmd *cobra.Command, args []string) {
 
@@ -53,27 +53,27 @@ func NewAnnotatorCommand() *cobra.Command {
 	return cmd
 }
 
-// Run executes node annotator based on the given configuration.
+// Run executes controller based on the given configuration.
 func Run(cc *config.CompletedConfig, stopCh <-chan struct{}) error {
 
-	klog.Infof("Starting Node Annotator version %+v", version.Get())
+	klog.Infof("Starting Controller version %+v", version.Get())
 
 	run := func(ctx context.Context) {
-		annotatorController := controller.NewController(
+		annotatorController := annotator.NewNodeAnnotator(
 			cc.KubeInformerFactory.Core().V1().Nodes(),
 			cc.KubeInformerFactory.Core().V1().Events(),
 			cc.KubeClient,
 			cc.PromClient,
 			*cc.Policy,
-			cc.ComponentConfig.BindingHeapSize,
+			cc.AnnotatorConfig.BindingHeapSize,
 		)
 
 		cc.KubeInformerFactory.Start(stopCh)
 
-		panic(annotatorController.Run(int(cc.ComponentConfig.ConcurrentSyncs), stopCh))
+		panic(annotatorController.Run(int(cc.AnnotatorConfig.ConcurrentSyncs), stopCh))
 	}
 
-	if !cc.ComponentConfig.LeaderElection.LeaderElect {
+	if !cc.LeaderElection.LeaderElect {
 		run(context.TODO())
 		panic("unreachable")
 	}
@@ -85,9 +85,9 @@ func Run(cc *config.CompletedConfig, stopCh <-chan struct{}) error {
 
 	// add a uniquifier so that two processes on the same host don't accidentally both become active
 	id = id + "_" + string(uuid.NewUUID())
-	rl, err := resourcelock.New(cc.ComponentConfig.LeaderElection.ResourceLock,
-		cc.ComponentConfig.LeaderElection.ResourceNamespace,
-		cc.ComponentConfig.LeaderElection.ResourceName,
+	rl, err := resourcelock.New(cc.LeaderElection.ResourceLock,
+		cc.LeaderElection.ResourceNamespace,
+		cc.LeaderElection.ResourceName,
 		cc.LeaderElectionClient.CoreV1(),
 		cc.LeaderElectionClient.CoordinationV1(),
 		resourcelock.ResourceLockConfig{
@@ -101,9 +101,9 @@ func Run(cc *config.CompletedConfig, stopCh <-chan struct{}) error {
 	electionChecker := leaderelection.NewLeaderHealthzAdaptor(time.Second * 20)
 	leaderelection.RunOrDie(context.TODO(), leaderelection.LeaderElectionConfig{
 		Lock:          rl,
-		LeaseDuration: cc.ComponentConfig.LeaderElection.LeaseDuration.Duration,
-		RenewDeadline: cc.ComponentConfig.LeaderElection.RenewDeadline.Duration,
-		RetryPeriod:   cc.ComponentConfig.LeaderElection.RetryPeriod.Duration,
+		LeaseDuration: cc.LeaderElection.LeaseDuration.Duration,
+		RenewDeadline: cc.LeaderElection.RenewDeadline.Duration,
+		RetryPeriod:   cc.LeaderElection.RetryPeriod.Duration,
 		Callbacks: leaderelection.LeaderCallbacks{
 			OnStartedLeading: run,
 			OnStoppedLeading: func() {
@@ -111,7 +111,7 @@ func Run(cc *config.CompletedConfig, stopCh <-chan struct{}) error {
 			},
 		},
 		WatchDog: electionChecker,
-		Name:     "annotator",
+		Name:     "crane-scheduler-controller",
 	})
 
 	panic("unreachable")

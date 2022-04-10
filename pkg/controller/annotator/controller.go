@@ -1,4 +1,4 @@
-package controller
+package annotator
 
 import (
 	"fmt"
@@ -13,11 +13,11 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	corelisters "k8s.io/client-go/listers/core/v1"
 
-	prom "github.com/gocrane/crane-scheduler/pkg/annotator/prometheus"
+	prom "github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
 	policy "github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
 )
 
-// Controller is node annotator Controller.
+// Controller is Controller for node annotator.
 type Controller struct {
 	nodeInformer       coreinformers.NodeInformer
 	nodeInformerSynced cache.InformerSynced
@@ -34,8 +34,8 @@ type Controller struct {
 	bindingRecords *BindingRecords
 }
 
-// NewController returns a Node Annotator Controller object.
-func NewController(
+// NewController returns a Node Annotator object.
+func NewNodeAnnotator(
 	nodeInformer coreinformers.NodeInformer,
 	eventInformer coreinformers.EventInformer,
 	kubeClient clientset.Interface,
@@ -67,7 +67,7 @@ func (c *Controller) Run(worker int, stopCh <-chan struct{}) error {
 	nodeController := newNodeController(c)
 
 	if !cache.WaitForCacheSync(stopCh, c.nodeInformerSynced, c.eventInformerSynced) {
-		return fmt.Errorf("failed to wait for cache sync for annotator controller")
+		return fmt.Errorf("failed to wait for cache sync for annotator")
 	}
 	klog.Info("Caches are synced for controller")
 

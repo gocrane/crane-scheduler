@@ -22,8 +22,8 @@ REGISTRY_USER_NAME?=""
 REGISTRY_PASSWORD?=""
 
 # Image URL to use all building/pushing image targets
-SCHEDULER_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/scheduler:${GIT_VERSION}"
-ANNOTATOR_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/annotator:${GIT_VERSION}"
+SCHEDULER_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/crane-scheduler:${GIT_VERSION}"
+CONTROLLER_IMG ?= "${REGISTRY}/${REGISTRY_NAMESPACE}/crane-scheduler-controller:${GIT_VERSION}"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -93,32 +93,32 @@ test: fmt vet lint ## Run tests.
 	go test -coverprofile coverage.out -covermode=atomic ./...
 
 .PHONY: build
-build: scheduler annotator
+build: scheduler controller
 
 .PHONY: all
-all: test scheduler annotator
+all: test scheduler controller
 
 .PHONY: scheduler
 scheduler: ## Build binary with the crane scheduler.
 	CGO_ENABLED=0 GOOS=$(GOOS) go build -ldflags $(LDFLAGS) -o bin/scheduler cmd/scheduler/main.go
 
-.PHONY: annotator
-annotator: ## Build binary with the annotator.
-	CGO_ENABLED=0 GOOS=$(GOOS) go build -ldflags $(LDFLAGS) -o bin/annotator cmd/annotator/main.go
+.PHONY: controller
+controller: ## Build binary with the controller.
+	CGO_ENABLED=0 GOOS=$(GOOS) go build -ldflags $(LDFLAGS) -o bin/controller cmd/controller/main.go
 
 .PHONY: images
-images: image-scheduler image-annotator
+images: image-scheduler image-controller
 
 .PHONY: image-scheduler
 image-scheduler: ## Build docker image with the crane scheduler.
 	docker build --build-arg LDFLAGS=$(LDFLAGS) --build-arg PKGNAME=scheduler -t ${SCHEDULER_IMG} .
 
-.PHONY: image-annotator
-image-annotator: ## Build docker image with the annotator.
-	docker build --build-arg LDFLAGS=$(LDFLAGS) --build-arg PKGNAME=annotator -t ${ANNOTATOR_IMG} .
+.PHONY: image-controller
+image-controller: ## Build docker image with the controller.
+	docker build --build-arg LDFLAGS=$(LDFLAGS) --build-arg PKGNAME=controller -t ${CONTROLLER_IMG} .
 
 .PHONY: push-images
-push-images: push-image-scheduler push-image-annotator
+push-images: push-image-scheduler push-image-controller
 
 .PHONY: push-image-scheduler
 push-image-scheduler: ## Push images.
@@ -127,12 +127,12 @@ ifneq ($(REGISTRY_USER_NAME), "")
 endif
 	docker push ${SCHEDULER_IMG}
 
-.PHONY: push-image-annotator
-push-image-annotator: ## Push images.
+.PHONY: push-image-controller
+push-image-controller: ## Push images.
 ifneq ($(REGISTRY_USER_NAME), "")
 	docker login -u $(REGISTRY_USER_NAME) -p $(REGISTRY_PASSWORD) ${REGISTRY}
 endif
-	docker push ${ANNOTATOR_IMG}
+	docker push ${CONTROLLER_IMG}
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))

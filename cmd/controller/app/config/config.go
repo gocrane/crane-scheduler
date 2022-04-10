@@ -1,19 +1,23 @@
 package config
 
 import (
-	prom "github.com/gocrane/crane-scheduler/pkg/annotator/prometheus"
-	policy "github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
 	"k8s.io/client-go/informers"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/record"
 
-	annotatorconfig "github.com/gocrane/crane-scheduler/pkg/annotator/apis/config"
+	componentbaseconfig "k8s.io/component-base/config"
+
+	annotatorconfig "github.com/gocrane/crane-scheduler/pkg/controller/annotator/config"
+	prom "github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
+	policy "github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
 )
 
-// Config is the main context object for node annotator.
+// Config is the main context object for crane scheduler controller.
 type Config struct {
-	// ComponentConfig is the annotator's configuration object.
-	ComponentConfig annotatorconfig.AnnotatorConfiguration
+	// AnnotatorConfig holds configuration for a node annotator.
+	AnnotatorConfig *annotatorconfig.AnnotatorConfiguration
+	// LeaderElection holds configuration for leader election.
+	LeaderElection *componentbaseconfig.LeaderElectionConfiguration
 	// KubeInformerFactory gives access to kubernetes informers for the controller.
 	KubeInformerFactory informers.SharedInformerFactory
 	// KubeClient is the general kube client.

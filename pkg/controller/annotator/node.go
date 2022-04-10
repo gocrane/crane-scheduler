@@ -1,4 +1,4 @@
-package controller
+package annotator
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	prom "github.com/gocrane/crane-scheduler/pkg/annotator/prometheus"
+	prom "github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

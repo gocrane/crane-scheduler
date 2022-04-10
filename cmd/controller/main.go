@@ -12,12 +12,12 @@ import (
 	"k8s.io/component-base/logs"
 	"k8s.io/klog/v2"
 
-	"github.com/gocrane/crane-scheduler/cmd/annotator/app"
+	"github.com/gocrane/crane-scheduler/cmd/controller/app"
 )
 
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
-	cmd := app.NewAnnotatorCommand()
+	cmd := app.NewControllerCommand()
 
 	klog.InitFlags(nil)
 
