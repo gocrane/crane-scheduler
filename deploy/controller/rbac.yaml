@@ -7,7 +7,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: annotator
+  name: crane-scheduler-controller
 rules:
 - apiGroups:
   - ""
@@ -33,24 +33,32 @@ rules:
   - update
   - create
   - patch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - get
+  - update
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: annotator
+  name: crane-scheduler-controller
   namespace: crane-system
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: annotator
+  name: crane-scheduler-controller
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: annotator
+  name: crane-scheduler-controller
 subjects:
 - kind: ServiceAccount
-  name: annotator
+  name: crane-scheduler-controller
   namespace: crane-system

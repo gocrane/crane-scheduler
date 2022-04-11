@@ -26,7 +26,7 @@ func NewControllerCommand() *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use: "crane-scheduler-controller",
+		Use: "controller",
 		Long: `The Crane Scheduler Controller is a kubernetes controller, which is used for annotating
 		nodes with real load imformation sourced from Prometheus defaultly. `,
 		Run: func(cmd *cobra.Command, args []string) {

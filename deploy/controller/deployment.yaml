@@ -3,30 +3,30 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: annotator
-  name: node-annotator
+    app: crane-scheduler-controller
+  name: crane-scheduler-controller
   namespace: crane-system
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: annotator
+      app: crane-scheduler-controller
   template:
     metadata:
       labels:
-        app: annotator
+        app: crane-scheduler-controller
     spec:
-      serviceAccountName: annotator
+      serviceAccountName: crane-scheduler-controller
       containers:
-        - name: node-annotator
+        - name: controller
           env:
             - name: TZ
               value: Asia/Shanghai
           command:
-            - /annotator
+            - /controller
             - --policy-config-path=/data/policy.yaml
-            - --prometheus-addr=PROMETHEUS_ADDRESS
-          image: docker.io/gocrane/annotator:ad47ee5
+            - --prometheus-address=PROMETHEUS_ADDRESS
+          image: docker.io/gocrane/crane-scheduler-controller:65301a6 
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - mountPath: /data

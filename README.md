@@ -155,10 +155,10 @@ There are two options:
    4) Modify `kube-scheduler.yaml` and replace kube-scheduler image with Crane-scheduler：
    ```yaml
    ...
-    image: docker.io/gocrane/scheduler:1bcc819
+    image: docker.io/gocrane/crane-scheduler:65301a6
    ...
    ```
-   5) Install [node-annotator](deploy/annotator/deployment.yaml):
+   1) Install [crane-scheduler-controller](deploy/controller/deployment.yaml):
     ```bash
-    kubectl apply ./deploy/annotator/rbac.yaml && kubectl apply -f ./deploy/annotator/deployment.yaml
+    kubectl apply ./deploy/controller/rbac.yaml && kubectl apply -f ./deploy/controller/deployment.yaml
     ```

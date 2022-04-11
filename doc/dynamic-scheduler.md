@@ -13,6 +13,7 @@ To solve these problems, Dynamic scheduler builds a simple but efficient model b
 
 As shown above, Dynamic scheduler relies on `Prometheus` and `Node-exporter` to collect and aggregate metrics data, and it consists of two components:
 - `Node-annotator` periodically pulls data from Prometheus and marks them with timestamp on the node in the form of annotations.
+>**Note:** `Node-annotator` is currently a module of `Crane-scheduler-controller`.
 - `Dynamic plugin` reads the load data directly from the node's annotation, filters and scores candidates based on a simple algorithm.
 
 ###  Scheduler Policy
