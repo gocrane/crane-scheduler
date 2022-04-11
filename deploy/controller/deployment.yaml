@@ -1,0 +1,107 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: crane-scheduler-controller
+  name: crane-scheduler-controller
+  namespace: crane-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crane-scheduler-controller
+  template:
+    metadata:
+      labels:
+        app: crane-scheduler-controller
+    spec:
+      serviceAccountName: crane-scheduler-controller
+      containers:
+        - name: controller
+          env:
+            - name: TZ
+              value: Asia/Shanghai
+          command:
+            - /controller
+            - --policy-config-path=/data/policy.yaml
+            - --prometheus-address=PROMETHEUS_ADDRESS
+          image: docker.io/gocrane/crane-scheduler-controller:65301a6 
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /data
+              name: dynamic-scheduler-policy
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: dynamic-scheduler-policy
+          name: dynamic-scheduler-policy
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dynamic-scheduler-policy
+  namespace: crane-system
+data:
+  policy.yaml: |
+    apiVersion: scheduler.policy.crane.io/v1alpha1
+    kind: DynamicSchedulerPolicy
+    spec:
+      syncPolicy:
+        ##cpu usage
+        - name: cpu_usage_avg_5m
+          period: 3m
+        - name: cpu_usage_max_avg_1h
+          period: 15m
+        - name: cpu_usage_max_avg_1d
+          period: 3h
+        ##memory usage
+        - name: mem_usage_avg_5m
+          period: 3m
+        - name: mem_usage_max_avg_1h
+          period: 15m
+        - name: mem_usage_max_avg_1d
+          period: 3h
+
+      predicate:
+        ##cpu usage
+        - name: cpu_usage_avg_5m
+          maxLimitPecent: 0.65
+        - name: cpu_usage_max_avg_1h
+          maxLimitPecent: 0.75
+        ##memory usage
+        - name: mem_usage_avg_5m
+          maxLimitPecent: 0.65
+        - name: mem_usage_max_avg_1h
+          maxLimitPecent: 0.75
+
+      priority:
+        ###score = sum(() * weight) / len,  0 <= score <= 10
+        ##cpu usage
+        - name: cpu_usage_avg_5m
+          weight: 0.2
+        - name: cpu_usage_max_avg_1h
+          weight: 0.3
+        - name: cpu_usage_max_avg_1d
+          weight: 0.5
+        ##memory usage
+        - name: mem_usage_avg_5m
+          weight: 0.2
+        - name: mem_usage_max_avg_1h
+          weight: 0.3
+        - name: mem_usage_max_avg_1d
+          weight: 0.5
+
+      hotValue:
+        - timeRange: 5m
+          count: 5
+        - timeRange: 1m
+          count: 2
+ 
