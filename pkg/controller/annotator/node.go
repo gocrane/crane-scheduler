@@ -6,18 +6,17 @@ import (
 	"strconv"
 	"time"
 
-	prom "github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
-
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	clientset "k8s.io/client-go/kubernetes"
-
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
 
 	policy "github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
+
+	prom "github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
 	utils "github.com/gocrane/crane-scheduler/pkg/utils"
 )
 

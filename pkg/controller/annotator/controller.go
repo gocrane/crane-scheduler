@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/client-go/tools/cache"
-	"k8s.io/klog/v2"
-
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	clientset "k8s.io/client-go/kubernetes"
 	corelisters "k8s.io/client-go/listers/core/v1"
+	"k8s.io/client-go/tools/cache"
+	"k8s.io/klog/v2"
+
+	policy "github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
 
 	prom "github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
-	policy "github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
 )
 
 // Controller is Controller for node annotator.

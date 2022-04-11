@@ -7,9 +7,10 @@ import (
 
 	componentbaseconfig "k8s.io/component-base/config"
 
+	policy "github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
+
 	annotatorconfig "github.com/gocrane/crane-scheduler/pkg/controller/annotator/config"
 	prom "github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
-	policy "github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
 )
 
 // Config is the main context object for crane scheduler controller.

@@ -14,7 +14,6 @@ import (
 
 	controllerappconfig "github.com/gocrane/crane-scheduler/cmd/controller/app/config"
 	annotatorconfig "github.com/gocrane/crane-scheduler/pkg/controller/annotator/config"
-
 	"github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
 	dynamicscheduler "github.com/gocrane/crane-scheduler/pkg/plugins/dynamic"
 )

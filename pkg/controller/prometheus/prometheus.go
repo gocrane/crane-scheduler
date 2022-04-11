@@ -17,8 +17,11 @@ const (
 	DefaultPrometheusQueryTimeout = 10 * time.Second
 )
 
+// PromClient provides client to interact with Prometheus.
 type PromClient interface {
+	// QueryByNodeName queries data by kubernetes node name.
 	QueryByNodeName(string, string) (string, error)
+	// QueryByNodeName queries data by kubernetes node name with offset.
 	QueryByNodeNameWithOffset(string, string, string) (string, error)
 }
 
@@ -26,6 +29,7 @@ type promClient struct {
 	API v1.API
 }
 
+// NewPromClient returns PromClient interface.
 func NewPromClient(addr string) (PromClient, error) {
 	config := api.Config{
 		Address: addr,
