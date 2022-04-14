@@ -199,7 +199,8 @@ spec:
             memory: "1Gi"
             cpu: "1"
 ```
->**Note:** Change `crane-scheduler` to `default-scheduler` if `crane-scheduler` is used as the default scheduler.
+>**Note:** Change `crane-scheduler` to `default-scheduler` if `crane-scheduler` is used as default.
+
 There will be the following event if the test pod is successfully scheduled:
 ```bash
 Type    Reason     Age   From             Message
