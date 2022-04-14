@@ -13,6 +13,7 @@ profiles:
     score:
       enabled:
       - name: Dynamic
+        weight: 3
   pluginConfig:
   - name: Dynamic
     args:
