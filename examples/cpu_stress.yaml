@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu-stress
+spec:
+  selector:
+    matchLabels:
+      app: cpu-stress
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: cpu-stress
+    spec:
+      schedulerName: crane-scheduler
+      hostNetwork: true
+      tolerations:
+      - key: node.kubernetes.io/network-unavailable
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: stress
+        image: docker.io/gocrane/stress:latest
+        command: ["stress", "-c", "1"]
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
+          limits:
+            memory: "1Gi"
+            cpu: "1"

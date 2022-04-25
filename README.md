@@ -91,6 +91,7 @@ There are two options:
        score:
          enabled:
          - name: Dynamic
+           weight: 3
      pluginConfig:
      - name: Dynamic
         args:
@@ -155,10 +156,54 @@ There are two options:
    4) Modify `kube-scheduler.yaml` and replace kube-scheduler image with Crane-scheduler：
    ```yaml
    ...
-    image: docker.io/gocrane/crane-scheduler:65301a6
+    image: docker.io/gocrane/crane-scheduler:0.0.23
    ...
    ```
    1) Install [crane-scheduler-controller](deploy/controller/deployment.yaml):
     ```bash
     kubectl apply ./deploy/controller/rbac.yaml && kubectl apply -f ./deploy/controller/deployment.yaml
     ```
+
+### 4. Schedule Pods With Crane-scheduler
+Test Crane-scheduler with following example:
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu-stress
+spec:
+  selector:
+    matchLabels:
+      app: cpu-stress
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cpu-stress
+    spec:
+      schedulerName: crane-scheduler
+      hostNetwork: true
+      tolerations:
+      - key: node.kubernetes.io/network-unavailable
+        operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: stress
+        image: docker.io/gocrane/stress:latest
+        command: ["stress", "-c", "1"]
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+```
+>**Note:** Change `crane-scheduler` to `default-scheduler` if `crane-scheduler` is used as default.
+
+There will be the following event if the test pod is successfully scheduled:
+```bash
+Type    Reason     Age   From             Message
+----    ------     ----  ----             -------
+Normal  Scheduled  28s   crane-scheduler  Successfully assigned default/cpu-stress-7669499b57-zmrgb to vm-162-247-ubuntu
+```
