@@ -19,10 +19,10 @@ const (
 
 // PromClient provides client to interact with Prometheus.
 type PromClient interface {
-	// QueryByNodeName queries data by kubernetes node name.
-	QueryByNodeName(string, string) (string, error)
-	// QueryByNodeName queries data by kubernetes node name with offset.
-	QueryByNodeNameWithOffset(string, string, string) (string, error)
+	// QueryByNodeIP queries data by node IP.
+	QueryByNodeIP(string, string) (string, error)
+	// QueryByNodeIPWithOffset queries data by node IP with offset.
+	QueryByNodeIPWithOffset(string, string, string) (string, error)
 }
 
 type promClient struct {
@@ -45,17 +45,17 @@ func NewPromClient(addr string) (PromClient, error) {
 	}, nil
 }
 
-func (p *promClient) QueryByNodeName(metricName, nodeName string) (string, error) {
-	klog.V(4).Infof("Try to query %s by node name[%s]", metricName, nodeName)
+func (p *promClient) QueryByNodeIP(metricName, ip string) (string, error) {
+	klog.V(4).Infof("Try to query %s by node IP[%s]", metricName, ip)
 
-	querySelector := fmt.Sprintf("%s{instance=~\"%s\"} /100", metricName, nodeName)
+	querySelector := fmt.Sprintf("%s{instance=~\"%s\"} /100", metricName, ip)
 
 	result, err := p.query(querySelector)
 	if result != "" && err == nil {
 		return result, nil
 	}
 
-	querySelector = fmt.Sprintf("%s{instance=~\"%s:.+\"} /100", metricName, nodeName)
+	querySelector = fmt.Sprintf("%s{instance=~\"%s:.+\"} /100", metricName, ip)
 	result, err = p.query(querySelector)
 	if result != "" && err == nil {
 		return result, nil
@@ -64,16 +64,16 @@ func (p *promClient) QueryByNodeName(metricName, nodeName string) (string, error
 	return "", err
 }
 
-func (p *promClient) QueryByNodeNameWithOffset(metricName, nodeName, offset string) (string, error) {
-	klog.V(4).Info("Try to query %s with offset %s by node name[%s]", metricName, offset, nodeName)
+func (p *promClient) QueryByNodeIPWithOffset(metricName, ip, offset string) (string, error) {
+	klog.V(4).Info("Try to query %s with offset %s by node IP[%s]", metricName, offset, ip)
 
-	querySelector := fmt.Sprintf("%s{instance=~\"%s\"} offset %s /100", metricName, nodeName, offset)
+	querySelector := fmt.Sprintf("%s{instance=~\"%s\"} offset %s /100", metricName, ip, offset)
 	result, err := p.query(querySelector)
 	if result != "" && err == nil {
 		return result, nil
 	}
 
-	querySelector = fmt.Sprintf("%s{instance=~\"%s:.+\"} offset %s /100", metricName, nodeName, offset)
+	querySelector = fmt.Sprintf("%s{instance=~\"%s:.+\"} offset %s /100", metricName, ip, offset)
 	result, err = p.query(querySelector)
 	if result != "" && err == nil {
 		return result, nil
