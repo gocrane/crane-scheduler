@@ -99,7 +99,7 @@ func (n *nodeController) syncNode(key string) (bool, error) {
 }
 
 func annotateNodeLoad(promClient prom.PromClient, kubeClient clientset.Interface, node *v1.Node, key string) error {
-	value, err := promClient.QueryByNodeName(key, node.Name)
+	value, err := promClient.QueryByNodeIP(key, getNodeInternalIP(node))
 	if err != nil || len(value) == 0 {
 		return fmt.Errorf("failed to get data %s{%s=%s}: %v", key, node.Name, value, err)
 	}
@@ -171,4 +171,14 @@ func (n *nodeController) CreateMetricSyncTicker(stopCh <-chan struct{}) {
 			}
 		}(p)
 	}
+}
+
+func getNodeInternalIP(node *v1.Node) string {
+	for _, addr := range node.Status.Addresses {
+		if addr.Type == v1.NodeInternalIP {
+			return addr.Address
+		}
+	}
+
+	return node.Name
 }
