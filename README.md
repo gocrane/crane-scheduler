@@ -8,7 +8,7 @@ Crane-scheduler is a collection of scheduler plugins based on [scheduler framewo
 ### 1. Install Prometheus
 Make sure your kubernetes cluster has Prometheus installed. If not, please refer to [Install Prometheus](https://github.com/gocrane/fadvisor/blob/main/README.md#prerequests).
 ### 2. Configure Prometheus Rules
-1) Configure the rules of Prometheus to get expected aggregated data:
+Configure the rules of Prometheus to get expected aggregated data:
 ```yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -49,22 +49,7 @@ spec:
         expr: avg_over_time(mem_usage_active[5m])
 ```
 >**⚠️Troubleshooting:** The sampling interval of Prometheus must be less than 30 seconds, otherwise the above rules(such as cpu_usage_active) may not take effect.
-2) Update the configuration of Prometheus service discovery to ensure that node_exporters/telegraf are using node name as instance name:
-```yaml
-    - job_name: kubernetes-node-exporter
-      tls_config:
-        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-        insecure_skip_verify: true
-      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-      scheme: https
-      kubernetes_sd_configs:
-      ...
-      # Host name
-      - source_labels: [__meta_kubernetes_node_name]
-        target_label: instance
-      ...
-```
->**Note:** This step can be skipped if the node name itself is the host IP.
+
 ### 3. Install Crane-scheduler
 There are two options:
 1) Install Crane-scheduler as a second scheduler:
@@ -206,4 +191,17 @@ There will be the following event if the test pod is successfully scheduled:
 Type    Reason     Age   From             Message
 ----    ------     ----  ----             -------
 Normal  Scheduled  28s   crane-scheduler  Successfully assigned default/cpu-stress-7669499b57-zmrgb to vm-162-247-ubuntu
+```
+
+## Compatibility Matrix
+
+|  Scheudler Image Version       | Supported Kubernetes Version |
+| ------------------------------ | :--------------------------: | 
+|         0.0.23                 |        >=1.22.0              |
+|         0.0.20                 |        >=1.18.0              | 
+
+The default scheudler image version is `0.0.23`, and you can run the following command for quick replacement:
+
+```bash
+ KUBE_EDITOR="sed -i 's/v1beta2/v1beta1/g'" kubectl edit cm scheduler-config -n crane-system && KUBE_EDITOR="sed -i 's/0.0.23/0.0.20/g'" kubectl edit deploy crane-scheduler -n crane-system
 ```
