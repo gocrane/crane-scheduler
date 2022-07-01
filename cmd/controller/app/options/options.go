@@ -16,6 +16,7 @@ import (
 	annotatorconfig "github.com/gocrane/crane-scheduler/pkg/controller/annotator/config"
 	"github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
 	dynamicscheduler "github.com/gocrane/crane-scheduler/pkg/plugins/dynamic"
+	utils "github.com/gocrane/crane-scheduler/pkg/utils"
 )
 
 const (
@@ -47,7 +48,7 @@ func NewOptions() (*Options, error) {
 			RetryPeriod:       metav1.Duration{Duration: 2 * time.Second},
 			ResourceLock:      "leases",
 			ResourceName:      "crane-scheduler-controller",
-			ResourceNamespace: "crane-system",
+			ResourceNamespace: utils.GetSystemNamespace(),
 		},
 	}
 

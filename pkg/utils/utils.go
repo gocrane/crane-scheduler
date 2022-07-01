@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	TimeFormat      = "2006-01-02T15:04:05Z"
-	DefaultTimeZone = "Asia/Shanghai"
+	TimeFormat       = "2006-01-02T15:04:05Z"
+	DefaultTimeZone  = "Asia/Shanghai"
+	DefaultNamespace = "crane-system"
 )
 
 func GetLocalTime() string {
@@ -29,4 +30,14 @@ func GetLocation() *time.Location {
 	loc, _ := time.LoadLocation(zone)
 
 	return loc
+}
+
+func GetSystemNamespace() string {
+	ns := os.Getenv("CRANE_SYSTEM_NAMESPACE")
+
+	if ns == "" {
+		ns = DefaultNamespace
+	}
+
+	return ns
 }
