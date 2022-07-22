@@ -31,6 +31,7 @@ type Options struct {
 
 	master     string
 	kubeconfig string
+	healthPort string
 }
 
 // NewOptions returns default annotator app options.
@@ -50,6 +51,7 @@ func NewOptions() (*Options, error) {
 			ResourceName:      "crane-scheduler-controller",
 			ResourceNamespace: utils.GetSystemNamespace(),
 		},
+		healthPort: "8090",
 	}
 
 	return o, nil
@@ -67,6 +69,7 @@ func (o *Options) Flags(flag *pflag.FlagSet) error {
 	flag.Int32Var(&o.ConcurrentSyncs, "concurrent-syncs", o.ConcurrentSyncs, "The number of annotator controller workers that are allowed to sync concurrently.")
 	flag.StringVar(&o.kubeconfig, "kubeconfig", o.kubeconfig, "Path to kubeconfig file with authorization information")
 	flag.StringVar(&o.master, "master", o.master, "The address of the Kubernetes API server (overrides any value in kubeconfig)")
+	flag.StringVar(&o.healthPort, "health-port", o.healthPort, "The port of health check")
 
 	options.BindLeaderElectionFlags(o.LeaderElection, flag)
 	return nil
@@ -126,6 +129,8 @@ func (o *Options) Config() (*controllerappconfig.Config, error) {
 	}
 
 	c.KubeInformerFactory = NewInformerFactory(c.KubeClient, 0)
+
+	c.HealthPort = o.healthPort
 
 	return c, nil
 }
