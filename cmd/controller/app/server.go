@@ -3,11 +3,13 @@ package app
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/uuid"
+	"k8s.io/apiserver/pkg/server/healthz"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/component-base/version"
@@ -72,6 +74,14 @@ func Run(cc *config.CompletedConfig, stopCh <-chan struct{}) error {
 
 		panic(annotatorController.Run(int(cc.AnnotatorConfig.ConcurrentSyncs), stopCh))
 	}
+
+	healthMux := http.NewServeMux()
+	healthz.InstallHandler(healthMux, healthz.NamedCheck("crane-scheduler-controller", healthz.PingHealthz.Check))
+	go func() {
+		if err := http.ListenAndServe(fmt.Sprintf(":%s", cc.HealthPort), healthMux); err != nil {
+			klog.Fatal("failed to listen & server health server from port %s: %v", cc.HealthPort, err)
+		}
+	}()
 
 	if !cc.LeaderElection.LeaderElect {
 		run(context.TODO())
