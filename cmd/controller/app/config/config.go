@@ -31,6 +31,8 @@ type Config struct {
 	EventRecorder record.EventRecorder
 	// LeaderElectionClient is the client used for leader election
 	LeaderElectionClient *clientset.Clientset
+	// HealthPort is server port used for health check
+	HealthPort string
 }
 
 type completedConfig struct {
