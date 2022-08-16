@@ -20,7 +20,9 @@ var (
 // addKnownTypes registers known types to the given scheme
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
-		&DynamicArgs{})
+		&DynamicArgs{},
+		&NodeResourceTopologyMatchArgs{},
+	)
 	return nil
 }
 
@@ -29,6 +31,6 @@ func init() {
 	// generated functions takes place in the generated files. The separation
 	// makes the code compile even when the generated files are missing.
 	localSchemeBuilder.Register(addKnownTypes)
-	localSchemeBuilder.Register(addDefaultingFuncs)
+	localSchemeBuilder.Register(RegisterDefaults)
 	localSchemeBuilder.Register(RegisterConversions)
 }

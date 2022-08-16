@@ -5,4 +5,5 @@
 
 // +groupName=kubescheduler.config.k8s.io
 
+// Package v1beta3 is the v1beta3 version of the API.
 package v1beta3 // import "crane.io/scheduler-plugins/apis/config/v1beta3"
