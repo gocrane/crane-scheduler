@@ -57,6 +57,10 @@ help: ## Display this help.
 
 ##@ Development
 
+.PHONY: update
+update: ## Run code generator scripts.
+	hack/update-all.sh
+
 .PHONY: fmt
 fmt: ## Run go fmt against code.
 	go fmt ./...
