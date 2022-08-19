@@ -100,17 +100,14 @@ func (n *nodeController) syncNode(key string) (bool, error) {
 
 func annotateNodeLoad(promClient prom.PromClient, kubeClient clientset.Interface, node *v1.Node, key string) error {
 	value, err := promClient.QueryByNodeIP(key, getNodeInternalIP(node))
-	if err != nil {
-		return fmt.Errorf("failed to get data by node ip %s{%s=%s}: %v", key, node.Name, value, err)
+	if err == nil && len(value) > 0 {
+		return patchNodeAnnotation(kubeClient, node, key, value)
 	}
-	if len(value) == 0 {
-		value, err = promClient.QueryByNodeName(key, getNodeName(node))
-		if err != nil || len(value) == 0 {
-			return fmt.Errorf("failed to get data by node name %s{%s=%s}: %v", key, node.Name, value, err)
-		}
+	value, err = promClient.QueryByNodeName(key, getNodeName(node))
+	if err == nil && len(value) > 0 {
+		return patchNodeAnnotation(kubeClient, node, key, value)
 	}
-
-	return patchNodeAnnotation(kubeClient, node, key, value)
+	return fmt.Errorf("failed to get data %s{%s=%s}: %v", key, node.Name, value, err)
 }
 
 func annotateNodeHotValue(kubeClient clientset.Interface, br *BindingRecords, node *v1.Node, policy policy.DynamicSchedulerPolicy) error {
