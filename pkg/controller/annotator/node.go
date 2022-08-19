@@ -100,8 +100,14 @@ func (n *nodeController) syncNode(key string) (bool, error) {
 
 func annotateNodeLoad(promClient prom.PromClient, kubeClient clientset.Interface, node *v1.Node, key string) error {
 	value, err := promClient.QueryByNodeIP(key, getNodeInternalIP(node))
-	if err != nil || len(value) == 0 {
-		return fmt.Errorf("failed to get data %s{%s=%s}: %v", key, node.Name, value, err)
+	if err != nil {
+		return fmt.Errorf("failed to get data by node ip %s{%s=%s}: %v", key, node.Name, value, err)
+	}
+	if len(value) == 0 {
+		value, err = promClient.QueryByNodeName(key, getNodeName(node))
+		if err != nil || len(value) == 0 {
+			return fmt.Errorf("failed to get data by node name %s{%s=%s}: %v", key, node.Name, value, err)
+		}
 	}
 
 	return patchNodeAnnotation(kubeClient, node, key, value)
@@ -180,5 +186,9 @@ func getNodeInternalIP(node *v1.Node) string {
 		}
 	}
 
+	return node.Name
+}
+
+func getNodeName(node *v1.Node) string {
 	return node.Name
 }
