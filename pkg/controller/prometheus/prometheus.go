@@ -21,6 +21,8 @@ const (
 type PromClient interface {
 	// QueryByNodeIP queries data by node IP.
 	QueryByNodeIP(string, string) (string, error)
+	// QueryByNodeName queries data by node IP.
+	QueryByNodeName(string, string) (string, error)
 	// QueryByNodeIPWithOffset queries data by node IP with offset.
 	QueryByNodeIPWithOffset(string, string, string) (string, error)
 }
@@ -57,6 +59,19 @@ func (p *promClient) QueryByNodeIP(metricName, ip string) (string, error) {
 
 	querySelector = fmt.Sprintf("%s{instance=~\"%s:.+\"} /100", metricName, ip)
 	result, err = p.query(querySelector)
+	if result != "" && err == nil {
+		return result, nil
+	}
+
+	return "", err
+}
+
+func (p *promClient) QueryByNodeName(metricName, name string) (string, error) {
+	klog.V(4).Infof("Try to query %s by node name[%s]", metricName, name)
+
+	querySelector := fmt.Sprintf("%s{instance=~\"%s\"} /100", metricName, name)
+
+	result, err := p.query(querySelector)
 	if result != "" && err == nil {
 		return result, nil
 	}
