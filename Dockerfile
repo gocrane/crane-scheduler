@@ -5,6 +5,7 @@ FROM golang:1.17.2-alpine as builder
 
 ARG LDFLAGS
 ARG PKGNAME
+ARG BUILD
 
 WORKDIR /go/src/github.com/gocrane/crane-scheduler
 
@@ -26,7 +27,10 @@ COPY cmd cmd/
 RUN go build -ldflags="${LDFLAGS}" -a -o ${PKGNAME} /go/src/github.com/gocrane/crane-scheduler/cmd/${PKGNAME}/main.go
 
 FROM alpine:3.13.5
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+
+ARG BUILD
+
+RUN if [[ "${BUILD}" != "CI" ]]; then sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories; fi
 RUN unset https_proxy HTTPS_PROXY HTTP_PROXY http_proxy && apk add -U tzdata
 
 WORKDIR /
