@@ -7,6 +7,10 @@ ARG LDFLAGS
 ARG PKGNAME
 
 WORKDIR /go/src/github.com/gocrane/crane-scheduler
+
+# Add build deps
+RUN apk add build-base
+
 # Copy the Go Modules manifests
 COPY go.mod go.mod
 COPY go.sum go.sum
