@@ -1,20 +1,32 @@
 apiVersion: kubescheduler.config.k8s.io/v1beta2
 kind: KubeSchedulerConfiguration
 leaderElection:
-  leaderElect: false
+  leaderElect: true
 clientConnection:
   kubeconfig: "REPLACE_ME_WITH_KUBE_CONFIG_PATH"
 profiles:
-- schedulerName: default-scheduler
-  plugins:
-    filter:
-      enabled:
+  - schedulerName: default-scheduler
+    plugins:
+      preFilter:
+        enabled:
+          - name: NodeResourceTopologyMatch
+      filter:
+        enabled:
+          - name: Dynamic
+          - name: NodeResourceTopologyMatch
+      score:
+        enabled:
+          - name: Dynamic
+            weight: 3
+          - name: NodeResourceTopologyMatch
+            weight: 2
+      reserve:
+        enabled:
+          - name: NodeResourceTopologyMatch
+      preBind:
+        enabled:
+          - name: NodeResourceTopologyMatch
+    pluginConfig:
       - name: Dynamic
-    score:
-      enabled:
-      - name: Dynamic
-        weight: 3
-  pluginConfig:
-  - name: Dynamic
-    args:
-      policyConfigPath: /etc/kubernetes/policy.yaml
+        args:
+          policyConfigPath: /etc/kubernetes/policy.yaml
