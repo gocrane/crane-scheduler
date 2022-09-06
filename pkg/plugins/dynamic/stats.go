@@ -8,11 +8,11 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
-	framework "k8s.io/kubernetes/pkg/scheduler/framework"
+	"k8s.io/kubernetes/pkg/scheduler/framework"
 
 	"github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
 
-	utils "github.com/gocrane/crane-scheduler/pkg/utils"
+	"github.com/gocrane/crane-scheduler/pkg/utils"
 )
 
 const (
@@ -147,16 +147,6 @@ func getActiveDuration(syncPeriodList []policy.SyncPolicy, name string) (time.Du
 	}
 
 	return 0, fmt.Errorf("failed to get the active duration")
-}
-
-// isDaemonsetPod judges if this pod belongs to one daemonset workload.
-func isDaemonsetPod(pod *v1.Pod) bool {
-	for _, ownerRef := range pod.GetOwnerReferences() {
-		if ownerRef.Kind == "DaemonSet" {
-			return true
-		}
-	}
-	return false
 }
 
 func getNodeHotValue(node *v1.Node) float64 {

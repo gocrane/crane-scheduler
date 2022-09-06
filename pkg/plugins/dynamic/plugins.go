@@ -7,10 +7,11 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/klog/v2"
-	framework "k8s.io/kubernetes/pkg/scheduler/framework"
+	"k8s.io/kubernetes/pkg/scheduler/framework"
 
 	"github.com/gocrane/crane-scheduler/pkg/plugins/apis/config"
 	"github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
+	"github.com/gocrane/crane-scheduler/pkg/utils"
 )
 
 var _ framework.FilterPlugin = &DynamicScheduler{}
@@ -37,7 +38,7 @@ func (ds *DynamicScheduler) Name() string {
 // It returns a list of failure reasons if the node is overload.
 func (ds *DynamicScheduler) Filter(ctx context.Context, state *framework.CycleState, pod *v1.Pod, nodeInfo *framework.NodeInfo) *framework.Status {
 	// ignore daemonset pod
-	if isDaemonsetPod(pod) {
+	if utils.IsDaemonsetPod(pod) {
 		return framework.NewStatus(framework.Success, "")
 	}
 

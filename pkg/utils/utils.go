@@ -3,6 +3,8 @@ package utils
 import (
 	"os"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
 )
 
 const (
@@ -10,6 +12,16 @@ const (
 	DefaultTimeZone  = "Asia/Shanghai"
 	DefaultNamespace = "crane-system"
 )
+
+// IsDaemonsetPod judges if this pod belongs to one daemonset workload.
+func IsDaemonsetPod(pod *corev1.Pod) bool {
+	for _, ownerRef := range pod.GetOwnerReferences() {
+		if ownerRef.Kind == "DaemonSet" {
+			return true
+		}
+	}
+	return false
+}
 
 func GetLocalTime() string {
 	loc := GetLocation()
