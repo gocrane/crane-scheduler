@@ -7,25 +7,13 @@ clientConnection:
 profiles:
   - schedulerName: default-scheduler
     plugins:
-      preFilter:
-        enabled:
-          - name: NodeResourceTopologyMatch
       filter:
         enabled:
           - name: Dynamic
-          - name: NodeResourceTopologyMatch
       score:
         enabled:
           - name: Dynamic
             weight: 3
-          - name: NodeResourceTopologyMatch
-            weight: 2
-      reserve:
-        enabled:
-          - name: NodeResourceTopologyMatch
-      preBind:
-        enabled:
-          - name: NodeResourceTopologyMatch
     pluginConfig:
       - name: Dynamic
         args:
