@@ -10,7 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/sets"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
-	v1qos "k8s.io/kubernetes/pkg/apis/core/v1/helper/qos"
 	"k8s.io/kubernetes/pkg/scheduler/framework"
 	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/noderesources"
 
@@ -35,13 +34,9 @@ func IsPodAwareOfTopology(attr map[string]string) *bool {
 	return nil
 }
 
-// GetPodTargetContainerIndices returns all pod whose cpus could be bound.
-// The pod is running, so we ignore all init containers.
+// GetPodTargetContainerIndices returns all pod whose cpus could be allocated.
 func GetPodTargetContainerIndices(pod *corev1.Pod) []int {
 	if policy := GetPodCPUPolicy(pod.Annotations); policy == topologyv1alpha1.AnnotationPodCPUPolicyNone {
-		return nil
-	}
-	if v1qos.GetPodQOS(pod) != corev1.PodQOSGuaranteed {
 		return nil
 	}
 	var idx []int
@@ -53,7 +48,7 @@ func GetPodTargetContainerIndices(pod *corev1.Pod) []int {
 	return idx
 }
 
-// GetPodCPUPolicy returns the cpu policy of pod, only supports none, exclusive and numa.
+// GetPodCPUPolicy returns the cpu policy of pod, only supports none, exclusive, numa and immovable.
 func GetPodCPUPolicy(attr map[string]string) string {
 	policy, ok := attr[topologyv1alpha1.AnnotationPodCPUPolicyKey]
 	if ok && SupportedPolicy.Has(policy) {
@@ -62,10 +57,13 @@ func GetPodCPUPolicy(attr map[string]string) string {
 	return ""
 }
 
-// GuaranteedCPUs returns CPUs for guaranteed pod.
+// GuaranteedCPUs returns CPUs for guaranteed container.
 func GuaranteedCPUs(container *corev1.Container) int {
 	cpuQuantity := container.Resources.Requests[corev1.ResourceCPU]
-	if cpuQuantity.Value()*1000 != cpuQuantity.MilliValue() {
+	cpuQuantityLimit := container.Resources.Limits[corev1.ResourceCPU]
+
+	// If requests.cpu != limits.cpu or cpu is not an integer, there are no guaranteed cpus.
+	if cpuQuantity.Cmp(cpuQuantityLimit) != 0 || cpuQuantity.Value()*1000 != cpuQuantity.MilliValue() {
 		return 0
 	}
 	// Safe downcast to do for all systems with < 2.1 billion CPUs.
