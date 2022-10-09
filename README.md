@@ -3,7 +3,7 @@
 ## Overview
 Crane-scheduler is a collection of scheduler plugins based on [scheduler framework](https://kubernetes.io/docs/concepts/scheduling-eviction/scheduling-framework/), including:
 
-- [Dynamic scheuler: a load-aware scheduler plugin](doc/dynamic-scheduler.md)
+- [Dynamic scheduler: a load-aware scheduler plugin](doc/dynamic-scheduler.md)
 ## Get Started
 ### 1. Install Prometheus
 Make sure your kubernetes cluster has Prometheus installed. If not, please refer to [Install Prometheus](https://github.com/gocrane/fadvisor/blob/main/README.md#prerequests).
