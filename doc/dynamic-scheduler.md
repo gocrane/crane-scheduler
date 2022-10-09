@@ -17,7 +17,7 @@ As shown above, Dynamic scheduler relies on `Prometheus` and `Node-exporter` to 
 - `Dynamic plugin` reads the load data directly from the node's annotation, filters and scores candidates based on a simple algorithm.
 
 ###  Scheduler Policy
-Dynamic provides a default [scheduler policy](../deploy/manifests/policy.yaml) and supports user-defined policies. The default policy reies on following metrics:
+Dynamic provides a default [scheduler policy](../deploy/manifests/dynamic/policy.yaml) and supports user-defined policies. The default policy reies on following metrics:
 - `cpu_usage_avg_5m` 
 - `cpu_usage_max_avg_1h`
 - `cpu_usage_max_avg_1d`
@@ -25,7 +25,7 @@ Dynamic provides a default [scheduler policy](../deploy/manifests/policy.yaml) a
 - `mem_usage_max_avg_1h`
 - `mem_usage_max_avg_1d`
   
-At the scheduling `Filter` stage, the node will be filtered if the actual usage rate of this node is greater than the threshold of any of the above metrics. And at the `Score` stage, the final score is the weighted sum of these metrics' values.
+At the scheduling `Filter` stage, the node will be filtered if the actual usage rate of this node is greater than the threshold of any the above metrics. And at the `Score` stage, the final score is the weighted sum of these metrics' values.
 
 ### Hot Value
 In the production cluster, scheduling hotspots may occur frequently because the load of the nodes can not increase immediately after the pod is created. Therefore, we define an extra metrics named `Hot Value`, which represents the scheduling frequency of the node in recent times. And the final priority of the node is the final score minus the `Hot Value`.
