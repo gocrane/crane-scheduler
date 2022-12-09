@@ -88,9 +88,9 @@ func (ds *DynamicScheduler) Score(ctx context.Context, state *framework.CycleSta
 
 	score, hotValue := getNodeScore(node.Name, nodeAnnotations, ds.schedulerPolicy.Spec), getNodeHotValue(node)
 
-	finalScore := score - int(hotValue*10)
+	score = score - int(hotValue*10)
 
-	finalScore = utils.NormalizeScore(int64(finalScore),framework.MaxNodeScore,framework.MinNodeScore)
+	finalScore := utils.NormalizeScore(int64(score),framework.MaxNodeScore,framework.MinNodeScore)
 
 	klog.V(4).Infof("[crane] Node[%s]'s final score is %d, while score is %d and hot value is %f", node.Name, finalScore, score, hotValue)
 
