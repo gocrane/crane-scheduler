@@ -53,3 +53,16 @@ func GetSystemNamespace() string {
 
 	return ns
 }
+
+// NormalizaScore nornalize the score in range [min, max]
+func NormalizeScore(value, max, min int) int {
+	if value < min {
+		value = min
+	}
+
+	if value > max {
+		value = max
+	}
+
+	return value
+}
