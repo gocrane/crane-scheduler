@@ -63,7 +63,7 @@ func (o *Options) Flags(flag *pflag.FlagSet) error {
 		return fmt.Errorf("nil pointer")
 	}
 
-	flag.StringVar(&o.PolicyConfigPath, "policy-config-path", o.PolicyConfigPath, "Path to annotator policy cofig")
+	flag.StringVar(&o.PolicyConfigPath, "policy-config-path", o.PolicyConfigPath, "Path to annotator policy config")
 	flag.StringVar(&o.PrometheusAddr, "prometheus-address", o.PrometheusAddr, "The address of prometheus, from which we can pull metrics data.")
 	flag.Int32Var(&o.BindingHeapSize, "binding-heap-size", o.BindingHeapSize, "Max size of binding heap size, used to store hot value data.")
 	flag.Int32Var(&o.ConcurrentSyncs, "concurrent-syncs", o.ConcurrentSyncs, "The number of annotator controller workers that are allowed to sync concurrently.")
