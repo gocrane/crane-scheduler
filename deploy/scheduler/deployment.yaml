@@ -1,0 +1,100 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crane-scheduler
+  namespace: crane-system
+  labels:
+    component: scheduler
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: scheduler
+  template:
+    metadata:
+      labels:
+        component: scheduler
+    spec:
+      volumes:
+        - name: scheduler-config
+          configMap:
+            name: scheduler-config
+            defaultMode: 420
+        - name: dynamic-scheduler-policy
+          configMap:
+            name: dynamic-scheduler-policy
+            defaultMode: 420
+      containers:
+        - name: crane-scheduler
+          image: docker.io/gocrane/crane-scheduler:0.0.23
+          command:
+            - /scheduler
+            - --leader-elect=true
+            - --config=/etc/kubernetes/kube-scheduler/scheduler-config.yaml
+          resources:
+            requests:
+              cpu: 200m
+          volumeMounts:
+            - name: scheduler-config
+              readOnly: true
+              mountPath: /etc/kubernetes/kube-scheduler
+            - name: dynamic-scheduler-policy
+              readOnly: true
+              mountPath: /etc/kubernetes
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 10259
+              scheme: HTTPS
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 10259
+              scheme: HTTPS
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: false
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      serviceAccountName: scheduler
+      serviceAccount: scheduler
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scheduler-config
+  namespace: crane-system
+data:
+  scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1beta2
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: true
+    profiles:
+    - schedulerName: default-scheduler
+      plugins:
+        filter:
+          enabled:
+          - name: Dynamic
+        score:
+          enabled:
+          - name: Dynamic
+            weight: 3
+      pluginConfig:
+      - name: Dynamic
+        args:
+          policyConfigPath: /etc/kubernetes/policy.yaml
