@@ -1,25 +1,15 @@
 apiVersion: kubescheduler.config.k8s.io/v1beta2
 kind: KubeSchedulerConfiguration
 leaderElection:
-  leaderElect: true
+  leaderElect: false
 clientConnection:
-  kubeconfig: "REPLACE_ME_WITH_KUBE_CONFIG_PATH"
+  kubeconfig: /users/zarhu/.kube/config_cloud
 profiles:
-  - schedulerName: default-scheduler
+  - schedulerName: crane-scheduler
     plugins:
-      preFilter:
-        enabled:
-          - name: NodeResourceTopologyMatch
       filter:
         enabled:
-          - name: NodeResourceTopologyMatch
-      score:
+          - name: Dummy
+      postFilter:
         enabled:
-          - name: NodeResourceTopologyMatch
-            weight: 2
-      reserve:
-        enabled:
-          - name: NodeResourceTopologyMatch
-      preBind:
-        enabled:
-          - name: NodeResourceTopologyMatch
+          - name: Dummy
