@@ -8,7 +8,6 @@ import (
 
 	"github.com/gocrane/crane-scheduler/pkg/plugins/apis/config"
 	"github.com/gocrane/crane-scheduler/pkg/plugins/apis/config/v1beta2"
-	"github.com/gocrane/crane-scheduler/pkg/plugins/apis/config/v1beta3"
 )
 
 var (
@@ -27,5 +26,4 @@ func init() {
 func AddToScheme(scheme *runtime.Scheme) {
 	utilruntime.Must(config.AddToScheme(scheme))
 	utilruntime.Must(v1beta2.AddToScheme(scheme))
-	utilruntime.Must(v1beta3.AddToScheme(scheme))
 }
