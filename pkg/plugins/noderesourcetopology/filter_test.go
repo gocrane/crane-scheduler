@@ -387,7 +387,7 @@ func TestTopologyMatch_Filter(t *testing.T) {
 				topologyAwareResources: tt.args.topologyAwareResources,
 			}
 			cycleState := framework.NewCycleState()
-			preFilterStatus := p.(framework.PreFilterPlugin).PreFilter(ctx, cycleState, tt.args.pod)
+			_, preFilterStatus := p.(framework.PreFilterPlugin).PreFilter(ctx, cycleState, tt.args.pod)
 			if !preFilterStatus.IsSuccess() {
 				t.Errorf("prefilter failed with status: %v", preFilterStatus)
 			}

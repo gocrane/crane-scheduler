@@ -1,7 +1,7 @@
 ARG PKGNAME
 
 # Build the manager binary
-FROM golang:1.17.2-alpine as builder
+FROM golang:1.19.9-alpine as builder
 
 ARG LDFLAGS
 ARG PKGNAME
@@ -25,7 +25,7 @@ COPY cmd cmd/
 # Build
 RUN go build -ldflags="${LDFLAGS}" -a -o ${PKGNAME} /go/src/github.com/gocrane/crane-scheduler/cmd/${PKGNAME}/main.go
 
-FROM alpine:3.13.5
+FROM alpine:latest
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 RUN unset https_proxy HTTPS_PROXY HTTP_PROXY http_proxy && apk add -U tzdata
 
