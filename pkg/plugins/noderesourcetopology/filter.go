@@ -53,10 +53,6 @@ func (tm *TopologyMatch) Filter(
 		return framework.AsStatus(err)
 	}
 
-	if nodeInfo.Node() == nil {
-		return framework.NewStatus(framework.Error, "node(s) not found")
-	}
-
 	if utils.IsDaemonsetPod(pod) || len(s.targetContainerIndices) == 0 {
 		return nil
 	}
