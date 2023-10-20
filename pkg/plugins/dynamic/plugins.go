@@ -42,11 +42,6 @@ func (ds *DynamicScheduler) Filter(ctx context.Context, state *framework.CycleSt
 		return framework.NewStatus(framework.Success, "")
 	}
 
-	node := nodeInfo.Node()
-	if node == nil {
-		return framework.NewStatus(framework.Error, "node not found")
-	}
-
 	nodeAnnotations, nodeName := nodeInfo.Node().Annotations, nodeInfo.Node().Name
 	if nodeAnnotations == nil {
 		nodeAnnotations = map[string]string{}
@@ -77,9 +72,6 @@ func (ds *DynamicScheduler) Score(ctx context.Context, state *framework.CycleSta
 	}
 
 	node := nodeInfo.Node()
-	if node == nil {
-		return 0, framework.NewStatus(framework.Error, "node not found")
-	}
 
 	nodeAnnotations := node.Annotations
 	if nodeAnnotations == nil {
@@ -90,7 +82,7 @@ func (ds *DynamicScheduler) Score(ctx context.Context, state *framework.CycleSta
 
 	score = score - int(hotValue*10)
 
-	finalScore := utils.NormalizeScore(int64(score),framework.MaxNodeScore,framework.MinNodeScore)
+	finalScore := utils.NormalizeScore(int64(score), framework.MaxNodeScore, framework.MinNodeScore)
 
 	klog.V(4).Infof("[crane] Node[%s]'s final score is %d, while score is %d and hot value is %f", node.Name, finalScore, score, hotValue)
 
