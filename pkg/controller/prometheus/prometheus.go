@@ -7,8 +7,10 @@ import (
 	"strconv"
 	"time"
 
+	annotatorconfig "github.com/gocrane/crane-scheduler/pkg/controller/annotator/config"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	pconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"k8s.io/klog/v2"
 )
@@ -32,9 +34,16 @@ type promClient struct {
 }
 
 // NewPromClient returns PromClient interface.
-func NewPromClient(addr string) (PromClient, error) {
+func NewPromClient(promconfig *annotatorconfig.PrometheusConfig) (PromClient, error) {
 	config := api.Config{
-		Address: addr,
+		Address: promconfig.PrometheusAddr,
+	}
+	if promconfig.PrometheusUser != "" && promconfig.PrometheusPassword != "" {
+		config.RoundTripper = pconfig.NewBasicAuthRoundTripper(promconfig.PrometheusUser,
+			pconfig.Secret(promconfig.PrometheusPassword), "", api.DefaultRoundTripper)
+	} else if promconfig.PrometheusBearerToken != "" {
+		config.RoundTripper = pconfig.NewAuthorizationCredentialsRoundTripper(promconfig.PrometheusBearer,
+			pconfig.Secret(promconfig.PrometheusBearerToken), api.DefaultRoundTripper)
 	}
 
 	client, err := api.NewClient(config)
