@@ -65,6 +65,10 @@ func (o *Options) Flags(flag *pflag.FlagSet) error {
 
 	flag.StringVar(&o.PolicyConfigPath, "policy-config-path", o.PolicyConfigPath, "Path to annotator policy config")
 	flag.StringVar(&o.PrometheusAddr, "prometheus-address", o.PrometheusAddr, "The address of prometheus, from which we can pull metrics data.")
+	flag.StringVar(&o.PrometheusUser, "prometheus-user", o.PrometheusUser, "The username of prometheus.")
+	flag.StringVar(&o.PrometheusPassword, "prometheus-password", o.PrometheusPassword, "The password of prometheus.")
+	flag.StringVar(&o.PrometheusBearer, "prometheus-bearer", "Bearer", "The custom bearer auth header of prometheus.")
+	flag.StringVar(&o.PrometheusBearerToken, "prometheus-bearer-token", o.PrometheusBearerToken, "The bearer auth token of prometheus.")
 	flag.Int32Var(&o.BindingHeapSize, "binding-heap-size", o.BindingHeapSize, "Max size of binding heap size, used to store hot value data.")
 	flag.Int32Var(&o.ConcurrentSyncs, "concurrent-syncs", o.ConcurrentSyncs, "The number of annotator controller workers that are allowed to sync concurrently.")
 	flag.StringVar(&o.kubeconfig, "kubeconfig", o.kubeconfig, "Path to kubeconfig file with authorization information")
@@ -123,7 +127,7 @@ func (o *Options) Config() (*controllerappconfig.Config, error) {
 
 	c.LeaderElectionClient = clientset.NewForConfigOrDie(rest.AddUserAgent(kubeconfig, "leader-election"))
 
-	c.PromClient, err = prometheus.NewPromClient(o.PrometheusAddr)
+	c.PromClient, err = prometheus.NewPromClient(&o.PrometheusConfig)
 	if err != nil {
 		return nil, err
 	}
