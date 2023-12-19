@@ -76,7 +76,10 @@ func (tm *TopologyMatch) Filter(
 			return status
 		}
 	}
-	assignTopologyResult(nw, s.targetContainerResource.Clone())
+
+	if status := assignTopologyResult(nw, s.targetContainerResource.Clone()); status != nil {
+		return status
+	}
 
 	s.Lock()
 	defer s.Unlock()

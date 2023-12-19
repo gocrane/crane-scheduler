@@ -170,7 +170,7 @@ func (nw *nodeWrapper) addNUMAResources(numaNodeResult topologyv1alpha1.ZoneList
 	}
 }
 
-func assignTopologyResult(nw *nodeWrapper, request *framework.Resource) {
+func assignTopologyResult(nw *nodeWrapper, request *framework.Resource) *framework.Status {
 	// sort by free CPU resource
 	sort.Slice(nw.numaNodes, func(i, j int) bool {
 		nodeI, nodeJ := nw.numaNodes[i], nw.numaNodes[j]
@@ -187,10 +187,10 @@ func assignTopologyResult(nw *nodeWrapper, request *framework.Resource) {
 				},
 			},
 		}
-		return
+		return nil
 	}
 
-	for _, node := range nw.numaNodes {
+	for i, node := range nw.numaNodes {
 		node.allocatable.MilliCPU = node.allocatable.MilliCPU / 1000 * 1000
 		res, finished := assignRequestForNUMANode(request, node)
 		if capacity := ResourceListIgnoreZeroResources(res); len(capacity) != 0 {
@@ -205,10 +205,16 @@ func assignTopologyResult(nw *nodeWrapper, request *framework.Resource) {
 		if finished {
 			break
 		}
+		// if we reach the last numa node and still not finished,
+		// then we are done for this node.
+		if i == len(nw.numaNodes)-1 {
+			return framework.NewStatus(framework.Unschedulable, ErrReasonNUMAResourceNotEnough)
+		}
 	}
 	sort.Slice(nw.result, func(i, j int) bool {
 		return nw.result[i].Name < nw.result[j].Name
 	})
+	return nil
 }
 
 func computeContainerSpecifiedResourceRequest(pod *corev1.Pod, indices []int, names sets.String) *framework.Resource {

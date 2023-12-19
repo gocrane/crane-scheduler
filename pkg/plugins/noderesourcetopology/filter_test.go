@@ -294,7 +294,7 @@ func TestTopologyMatch_Filter(t *testing.T) {
 			want: framework.NewStatus(framework.Unschedulable, ErrReasonNUMAResourceNotEnough),
 		},
 		{
-			name: "enough cpu resource in node with default none topology manager policy",
+			name: "not enough cpu resource in node with default none topology manager policy",
 			args: args{
 				pod: newResourcePod(false, nil, framework.Resource{MilliCPU: 2 * CPUTestUnit, Memory: MemTestUnit}),
 				nodeInfo: framework.NewNodeInfo(
@@ -310,7 +310,7 @@ func TestTopologyMatch_Filter(t *testing.T) {
 				}(),
 				topologyAwareResources: sets.NewString(string(corev1.ResourceCPU)),
 			},
-			want: nil,
+			want: framework.NewStatus(framework.Unschedulable, ErrReasonNUMAResourceNotEnough),
 		},
 		{
 			name: "no enough cpu resource in one NUMA node with default single numa topology manager policy",
@@ -356,6 +356,23 @@ func TestTopologyMatch_Filter(t *testing.T) {
 				topologyAwareResources: sets.NewString(string(corev1.ResourceCPU)),
 			},
 			want: framework.NewStatus(framework.Unschedulable, ErrReasonNUMAResourceNotEnough),
+		},
+		{
+			name: "no enough cpu resource in one NUMA node, but enough with cross numa pods",
+			args: args{
+				pod: newResourcePod(false, nil, framework.Resource{MilliCPU: 4 * CPUTestUnit}),
+				nodeInfo: framework.NewNodeInfo(
+					newResourcePod(true, newZoneList([]zone{{name: "node1", cpu: 1 * CPUTestUnit}}),
+						framework.Resource{MilliCPU: 1 * CPUTestUnit, Memory: 2 * MemTestUnit}),
+				),
+				nrt: func() *topologyv1alpha1.NodeResourceTopology {
+					nrtCopy := nrt.DeepCopy()
+					nrtCopy.CraneManagerPolicy.TopologyManagerPolicy = topologyv1alpha1.TopologyManagerPolicyNone
+					return nrtCopy
+				}(),
+				topologyAwareResources: sets.NewString(string(corev1.ResourceCPU)),
+			},
+			want: nil,
 		},
 	}
 	for _, tt := range tests {
