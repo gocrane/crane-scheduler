@@ -66,3 +66,9 @@ func NormalizeScore(value, max, min int64) int64 {
 
 	return value
 }
+
+// IsEdgeNode judges if this node is an edge node.
+func IsEdgeNode(node *corev1.Node) bool {
+	_, ok := node.Labels["superedge.io/edge-node"]
+	return ok
+}

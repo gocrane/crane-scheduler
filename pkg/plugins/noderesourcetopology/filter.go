@@ -57,7 +57,7 @@ func (tm *TopologyMatch) Filter(
 		return framework.NewStatus(framework.Error, "node(s) not found")
 	}
 
-	if utils.IsDaemonsetPod(pod) || len(s.targetContainerIndices) == 0 {
+	if utils.IsDaemonsetPod(pod) || len(s.targetContainerIndices) == 0 || utils.IsEdgeNode(nodeInfo.Node()) {
 		return nil
 	}
 
