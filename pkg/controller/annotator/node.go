@@ -14,10 +14,9 @@ import (
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog/v2"
 
-	policy "github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
-
 	prom "github.com/gocrane/crane-scheduler/pkg/controller/prometheus"
-	utils "github.com/gocrane/crane-scheduler/pkg/utils"
+	"github.com/gocrane/crane-scheduler/pkg/plugins/apis/policy"
+	"github.com/gocrane/crane-scheduler/pkg/utils"
 )
 
 const (
@@ -99,10 +98,16 @@ func (n *nodeController) syncNode(key string) (bool, error) {
 }
 
 func annotateNodeLoad(promClient prom.PromClient, kubeClient clientset.Interface, node *v1.Node, key string) error {
-	value, err := promClient.QueryByNodeIP(key, getNodeInternalIP(node))
+	value, err := promClient.QueryByNodeIP(key, getNodeInternalIP(node, utils.IPv4))
 	if err == nil && len(value) > 0 {
 		return patchNodeAnnotation(kubeClient, node, key, value)
 	}
+
+	value, err = promClient.QueryByNodeIP(key, getNodeInternalIP(node, utils.IPv6))
+	if err == nil && len(value) > 0 {
+		return patchNodeAnnotation(kubeClient, node, key, value)
+	}
+
 	value, err = promClient.QueryByNodeName(key, getNodeName(node))
 	if err == nil && len(value) > 0 {
 		return patchNodeAnnotation(kubeClient, node, key, value)
@@ -176,13 +181,23 @@ func (n *nodeController) CreateMetricSyncTicker(stopCh <-chan struct{}) {
 	}
 }
 
-func getNodeInternalIP(node *v1.Node) string {
+func getNodeInternalIP(node *v1.Node, flag string) string {
 	for _, addr := range node.Status.Addresses {
 		if addr.Type == v1.NodeInternalIP {
-			return addr.Address
+			switch flag {
+			case utils.IPv6:
+				if utils.IsValidIPv6(addr.Address) {
+					return addr.Address
+				}
+			case utils.IPv4:
+				if utils.IsValidIPv4(addr.Address) {
+					return addr.Address
+				}
+			default:
+				return addr.Address
+			}
 		}
 	}
-
 	return node.Name
 }
 

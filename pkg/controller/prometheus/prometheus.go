@@ -11,6 +11,8 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"k8s.io/klog/v2"
+
+	"github.com/gocrane/crane-scheduler/pkg/utils"
 )
 
 const (
@@ -57,7 +59,12 @@ func (p *promClient) QueryByNodeIP(metricName, ip string) (string, error) {
 		return result, nil
 	}
 
-	querySelector = fmt.Sprintf("%s{instance=~\"%s:.+\"} /100", metricName, ip)
+	if utils.IsValidIPv6(ip) {
+		querySelector = fmt.Sprintf("%s{instance=~\"\\\\[%s\\\\]:.+\"} /100", metricName, ip)
+	} else {
+		querySelector = fmt.Sprintf("%s{instance=~\"%s:.+\"} /100", metricName, ip)
+	}
+
 	result, err = p.query(querySelector)
 	if result != "" && err == nil {
 		return result, nil
